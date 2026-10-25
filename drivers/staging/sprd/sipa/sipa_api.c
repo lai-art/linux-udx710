@@ -1042,6 +1042,21 @@ int sipa_disconnect(enum sipa_ep_id ep_id, enum sipa_disconnect_id stage)
 	/* Drain the IRQ callback before the last enable reference can gate MMIO. */
 	sipa_hal_detach_fifo_callback(ctrl->ctx->hdl, ep->send_fifo.idx);
 	sipa_hal_detach_fifo_callback(ctrl->ctx->hdl, ep->recv_fifo.idx);
+	/* Release the common FIFOs that sipa_pam_connect() opened.  Without
+	 * this the HAL keeps their state at TRUE, so the next connect hits
+	 * "fifo_id = %d has already opened" and skips the whole register
+	 * programming sequence.  The USB endpoint then comes back with stale
+	 * pointers and the link flaps: every reconnect repeats the cycle and
+	 * the controller eventually stops answering the host at all.
+	 * The idle verification above already proved that no DMA owner is
+	 * left, which is the precondition sipa_close_common_fifo() requires.
+	 */
+	ret = sipa_close_common_fifo(ctrl->ctx->hdl, ep->send_fifo.idx);
+	if (ret)
+		goto out;
+	ret = sipa_close_common_fifo(ctrl->ctx->hdl, ep->recv_fifo.idx);
+	if (ret)
+		goto out;
 	ret = sipa_set_enabled(false);
 	if (ret)
 		goto out;
