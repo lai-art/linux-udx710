@@ -25,6 +25,11 @@
 };
 
 &usb1_dwc3 {
+	/* Single merged USB 3.0 port. Peripheral keeps the NCM management
+	 * interface; host drives a downstream adapter such as AX88179. */
+	dr_mode = "otg";
+	usb-role-switch;
+	role-switch-default-mode = "peripheral";
 	sprd,pamu3-offload;
 	/* The programmed 5160-byte RX FIFO holds five 1024-byte packets plus
 	 * setup/clock-crossing space. Wait for four free packet slots before

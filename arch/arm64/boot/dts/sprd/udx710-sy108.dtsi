@@ -69,10 +69,7 @@
 };
 
 &usb1_dwc3 {
-	/* Single merged USB 3.0 port: peripheral by default, host on demand. */
-	dr_mode = "otg";
-	usb-role-switch;
-	role-switch-default-mode = "peripheral";
+	dr_mode = "peripheral";
 };
 
 #include "udx710-sy108-firmware.dtsi"
